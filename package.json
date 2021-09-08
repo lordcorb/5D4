@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "express-jwt": "^6.1.0",
+    "jsonwebtoken": "^8.5.1",
+    "random": "^3.0.6"
+  }
+}

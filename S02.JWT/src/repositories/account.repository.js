@@ -1,5 +1,7 @@
 import crypto from 'crypto';
 import httpErrors from 'http-errors';
+import random from 'random';
+import jwt from 'jsonwebtoken';
 
 import Accounts from '../models/account.model.js';
 
@@ -23,11 +25,14 @@ class AccountRepository {
     }
 
     validatePassword(password, account) {
-        return account.password === password;
+        const iteration = parseInt(process.env.HASH_ITERATION, 10);
+        const hash = crypto.pbkdf2Sync(password, account.salt, iteration, 64, 'sha512').toString('base64');
+        return account.hash === hash;
     }
 
     create(account) {
       
+        account.fourDigits = random.int(1000,9999);
         account.salt = crypto.randomBytes(16).toString('base64');
         const iteration = parseInt(process.env.HASH_ITERATION, 10);
 
@@ -44,8 +49,10 @@ class AccountRepository {
 
     }
 
-    generateJWT(account, needNewRefresh = true) {
-       
+    generateJWT(email) {
+      const accessToken = jwt.sign({email:email},process.env.JWT_TOKEN_SECRET,{expiresIn:process.env.JWT_TOKEN_LIFE});
+      const refreshToken = jwt.sign({email:email}, process.env.JWT_REFRESH_SECRET, {expiresIn:process.env.JWT_REFRESH_LIFE});
+      return { accessToken, refreshToken };
     }
 
     async validateRefreshToken(email, refreshToken) {
