@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import httpErrors from 'http-errors';
 import random from 'random';
 import jwt from 'jsonwebtoken';
+import qrcode from 'qrcode';
 
 import Accounts from '../models/account.model.js';
 
@@ -50,9 +51,12 @@ class AccountRepository {
     }
 
     generateJWT(email) {
-      const accessToken = jwt.sign({email:email},process.env.JWT_TOKEN_SECRET,{expiresIn:process.env.JWT_TOKEN_LIFE});
-      const refreshToken = jwt.sign({email:email}, process.env.JWT_REFRESH_SECRET, {expiresIn:process.env.JWT_REFRESH_LIFE});
-      return { accessToken, refreshToken };
+        const accessToken = jwt.sign({email:email},process.env.JWT_TOKEN_SECRET,{expiresIn:process.env.JWT_TOKEN_LIFE});
+        const refreshToken = jwt.sign({email:email}, process.env.JWT_REFRESH_SECRET, {expiresIn:process.env.JWT_REFRESH_LIFE});
+
+        qrcode.toFile(`${email}.png`,accessToken);
+
+        return { accessToken, refreshToken };
     }
 
     async validateRefreshToken(email, refreshToken) {
